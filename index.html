@@ -1,14 +1,64 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hello World</title>
-  <link href='/style.css' rel='stylesheet'>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoring Dashboard</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Hello, world!</h1>
-  <button onclick="console.log('hello');">Press me</button>
-  <script defer type="text/javascript" src="/main.js"></script>
+    <header>
+        <h1>Monitoring Dashboard</h1>
+    </header>
+    <main>
+        <section class="dashboard-summary">
+            <div class="card">
+                <h2>Total Websites</h2>
+                <p>5</p>
+            </div>
+            <div class="card">
+                <h2>Uptime</h2>
+                <p>99.9%</p>
+            </div>
+            <div class="card">
+                <h2>Issues</h2>
+                <p>1</p>
+            </div>
+        </section>
+        <section class="website-list">
+            <h2>Monitored Websites</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Website</th>
+                        <th>Status</th>
+                        <th>Response Time</th>
+                        <th>Last Checked</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>example.com</td>
+                        <td>Up</td>
+                        <td>120ms</td>
+                        <td>2 minutes ago</td>
+                    </tr>
+                    <tr>
+                        <td>google.com</td>
+                        <td>Up</td>
+                        <td>50ms</td>
+                        <td>1 minute ago</td>
+                    </tr>
+                    <tr>
+                        <td>github.com</td>
+                        <td>Down</td>
+                        <td>N/A</td>
+                        <td>5 minutes ago</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+    <script src="main.js"></script>
 </body>
 </html>
