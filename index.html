@@ -1,64 +1,1896 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monitoring Dashboard</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PulseBoard - 웹사이트 모니터링 대시보드</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --bg-soft: #11182d;
+      --panel: rgba(17, 24, 45, 0.78);
+      --panel-strong: #141c33;
+      --line: rgba(255, 255, 255, 0.08);
+      --text: #f3f6ff;
+      --muted: #9aa7c7;
+      --primary: #6ea8fe;
+      --primary-soft: rgba(110, 168, 254, 0.14);
+      --green: #32d583;
+      --green-soft: rgba(50, 213, 131, 0.13);
+      --amber: #f5b546;
+      --amber-soft: rgba(245, 181, 70, 0.16);
+      --red: #ff6b6b;
+      --red-soft: rgba(255, 107, 107, 0.16);
+      --purple: #9b8cff;
+      --purple-soft: rgba(155, 140, 255, 0.16);
+      --shadow: 0 10px 35px rgba(0, 0, 0, 0.28);
+      --radius-xl: 24px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+      --sidebar-width: 260px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--text); background: radial-gradient(circle at top right, rgba(110, 168, 254, 0.14), transparent 22%), radial-gradient(circle at left bottom, rgba(155, 140, 255, 0.14), transparent 20%), var(--bg); }
+    body { min-height: 100vh; }
+    a { color: inherit; text-decoration: none; }
+    button, input { font: inherit; }
+
+    .app {
+      display: grid;
+      grid-template-columns: var(--sidebar-width) 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 28px 22px;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(10, 15, 30, 0.92), rgba(10, 15, 30, 0.76));
+      backdrop-filter: blur(14px);
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--primary), var(--purple));
+      display: grid;
+      place-items: center;
+      box-shadow: 0 12px 28px rgba(110, 168, 254, 0.28);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .brand-mark::before,
+    .brand-mark::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.45);
+    }
+
+    .brand-mark::before {
+      width: 22px;
+      height: 4px;
+      transform: rotate(-28deg) translateY(-2px);
+    }
+
+    .brand-mark::after {
+      width: 12px;
+      height: 12px;
+      right: 10px;
+      top: 10px;
+      box-shadow: 0 0 0 4px rgba(255,255,255,0.18);
+    }
+
+    .brand-copy h1 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .brand-copy p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .nav-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .nav-label {
+      color: var(--muted);
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      margin: 0 10px 4px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 13px 14px;
+      border-radius: 14px;
+      color: #dce4ff;
+      transition: 0.2s ease;
+      border: 1px solid transparent;
+    }
+
+    .nav-item:hover {
+      background: rgba(255,255,255,0.04);
+      border-color: var(--line);
+      transform: translateY(-1px);
+    }
+
+    .nav-item.active {
+      background: linear-gradient(135deg, rgba(110, 168, 254, 0.16), rgba(155, 140, 255, 0.12));
+      border-color: rgba(110, 168, 254, 0.24);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .nav-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: rgba(255,255,255,0.05);
+      color: #eff4ff;
+      font-size: 0.95rem;
+      flex-shrink: 0;
+    }
+
+    .nav-badge {
+      min-width: 24px;
+      height: 24px;
+      padding: 0 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.74rem;
+      color: var(--muted);
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+    }
+
+    .sidebar-footer strong {
+      display: block;
+      font-size: 0.95rem;
+      margin-bottom: 8px;
+    }
+
+    .sidebar-footer p {
+      margin: 0 0 14px;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 0.88rem;
+    }
+
+    .sidebar-footer .mini-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 0.84rem;
+    }
+
+    .layout {
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .topbar-left h2 {
+      margin: 0;
+      font-size: clamp(1.6rem, 2vw, 2.2rem);
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+    }
+
+    .topbar-left p {
+      margin: 8px 0 0;
+      color: var(--muted);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .pill {
+      height: 42px;
+      border-radius: 999px;
+      padding: 0 16px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.04);
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: #dfe7ff;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+    }
+
+    .pill-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--green);
+      box-shadow: 0 0 0 5px rgba(50, 213, 131, 0.14);
+      animation: pulse 2.2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      70% { transform: scale(1.15); opacity: 0.75; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .search-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: min(320px, 100%);
+      height: 46px;
+      padding: 0 14px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--line);
+    }
+
+    .search-box input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      outline: none;
+    }
+
+    .search-box input::placeholder { color: #8793b4; }
+
+    .btn {
+      height: 44px;
+      padding: 0 16px;
+      border-radius: 14px;
+      border: 1px solid transparent;
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .btn:hover { transform: translateY(-1px); border-color: var(--line); }
+    .btn.primary {
+      background: linear-gradient(135deg, rgba(110, 168, 254, 0.22), rgba(155, 140, 255, 0.18));
+      border-color: rgba(110, 168, 254, 0.24);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.45fr 0.95fr;
+      gap: 22px;
+      align-items: stretch;
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(20, 28, 51, 0.95), rgba(17, 24, 45, 0.88));
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      pointer-events: none;
+    }
+
+    .hero-main {
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .hero-main-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--primary-soft);
+      color: #d7e6ff;
+      font-size: 0.88rem;
+      border: 1px solid rgba(110, 168, 254, 0.22);
+      width: fit-content;
+    }
+
+    .hero-copy h3 {
+      margin: 14px 0 10px;
+      font-size: clamp(1.55rem, 2vw, 2.35rem);
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      max-width: 15ch;
+    }
+
+    .hero-copy p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 62ch;
+      line-height: 1.65;
+    }
+
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .mini-card {
+      padding: 18px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      min-height: 112px;
+    }
+
+    .mini-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .mini-label {
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+
+    .mini-value {
+      font-size: clamp(1.5rem, 1.4vw, 1.9rem);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      margin-bottom: 8px;
+    }
+
+    .mini-note {
+      color: #cbd6f5;
+      font-size: 0.84rem;
+    }
+
+    .delta {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    .delta.up { background: var(--green-soft); color: #9ff0c2; }
+    .delta.warn { background: var(--amber-soft); color: #ffe1a6; }
+    .delta.down { background: var(--red-soft); color: #ffb8b8; }
+
+    .hero-side {
+      padding: 28px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 20px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .section-title h4 {
+      margin: 0;
+      font-size: 1.02rem;
+      letter-spacing: -0.02em;
+    }
+
+    .section-title span,
+    .section-title small {
+      color: var(--muted);
+    }
+
+    .sla-ring-wrap {
+      display: grid;
+      place-items: center;
+      padding: 10px 0;
+    }
+
+    .sla-ring {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: conic-gradient(var(--green) 0 358deg, rgba(255,255,255,0.08) 358deg 360deg);
+      display: grid;
+      place-items: center;
+      position: relative;
+      box-shadow: inset 0 0 0 12px rgba(255,255,255,0.02), 0 24px 40px rgba(0,0,0,0.2);
+    }
+
+    .sla-ring::after {
+      content: "";
+      width: 136px;
+      height: 136px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #121a31, #0f1628);
+      border: 1px solid var(--line);
+      position: absolute;
+    }
+
+    .sla-center {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+    }
+
+    .sla-center strong {
+      display: block;
+      font-size: 2rem;
+      letter-spacing: -0.05em;
+      margin-bottom: 6px;
+    }
+
+    .sla-center span {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .health-bars {
+      display: grid;
+      gap: 12px;
+    }
+
+    .health-row {
+      display: grid;
+      grid-template-columns: 84px 1fr auto;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.9rem;
+    }
+
+    .health-track {
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      overflow: hidden;
+    }
+
+    .health-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--primary), var(--purple));
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1.3fr 0.95fr;
+      gap: 22px;
+    }
+
+    .card-body {
+      padding: 24px 24px 22px;
+    }
+
+    .chart-header,
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .card-header h4,
+    .chart-header h4 {
+      margin: 0;
+      font-size: 1.02rem;
+      letter-spacing: -0.02em;
+    }
+
+    .card-header p,
+    .chart-header p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .legend {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .legend-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+
+    .legend-dot.primary { background: var(--primary); }
+    .legend-dot.warn { background: var(--amber); }
+    .legend-dot.danger { background: var(--red); }
+
+    .chart-frame {
+      height: 290px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015));
+      border: 1px solid rgba(255,255,255,0.06);
+      padding: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .chart-grid {
+      position: absolute;
+      inset: 18px 18px 36px 18px;
+      display: grid;
+      grid-template-rows: repeat(4, 1fr);
+      pointer-events: none;
+    }
+
+    .chart-grid span {
+      border-top: 1px dashed rgba(255,255,255,0.08);
+      position: relative;
+    }
+
+    .chart-grid span::before {
+      content: attr(data-label);
+      position: absolute;
+      left: 0;
+      top: -11px;
+      color: rgba(154,167,199,0.75);
+      font-size: 0.74rem;
+      background: rgba(17,24,45,0.7);
+      padding-right: 8px;
+    }
+
+    #response-chart {
+      width: 100%;
+      height: 100%;
+      display: block;
+      position: relative;
+      z-index: 2;
+    }
+
+    .chart-x {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      color: rgba(154,167,199,0.78);
+      font-size: 0.74rem;
+      z-index: 2;
+    }
+
+    .alert-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .alert-item {
+      padding: 16px 16px 15px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.07);
+      background: rgba(255,255,255,0.03);
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 14px;
+      align-items: start;
+    }
+
+    .alert-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .alert-icon.high { background: var(--red-soft); color: #ffc5c5; }
+    .alert-icon.medium { background: var(--amber-soft); color: #ffe0a3; }
+    .alert-icon.low { background: var(--primary-soft); color: #d7e6ff; }
+
+    .alert-content strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.96rem;
+    }
+
+    .alert-content p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 0.88rem;
+    }
+
+    .alert-meta {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+      white-space: nowrap;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .severity {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 26px;
+      padding: 0 10px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+
+    .severity.high { background: var(--red-soft); color: #ffb7b7; }
+    .severity.medium { background: var(--amber-soft); color: #ffe19f; }
+    .severity.low { background: var(--primary-soft); color: #d6e6ff; }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr 1fr;
+      gap: 22px;
+    }
+
+    .status-breakdown {
+      display: grid;
+      gap: 16px;
+    }
+
+    .stack {
+      display: flex;
+      width: 100%;
+      height: 18px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+    }
+
+    .stack > span { height: 100%; }
+    .stack .ok { background: linear-gradient(90deg, rgba(50,213,131,0.9), rgba(70,222,148,0.9)); }
+    .stack .warn { background: linear-gradient(90deg, rgba(245,181,70,0.92), rgba(255,208,98,0.92)); }
+    .stack .down { background: linear-gradient(90deg, rgba(255,107,107,0.92), rgba(255,128,128,0.92)); }
+
+    .status-legend {
+      display: grid;
+      gap: 14px;
+      margin-top: 6px;
+    }
+
+    .status-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 12px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .status-row strong { color: var(--text); }
+
+    .timeline {
+      display: grid;
+      gap: 14px;
+    }
+
+    .timeline-item {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 14px;
+      align-items: start;
+    }
+
+    .timeline-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      margin-top: 4px;
+      box-shadow: 0 0 0 6px rgba(255,255,255,0.02);
+    }
+
+    .timeline-dot.ok { background: var(--green); }
+    .timeline-dot.warn { background: var(--amber); }
+    .timeline-dot.down { background: var(--red); }
+
+    .timeline-item strong {
+      display: block;
+      font-size: 0.95rem;
+      margin-bottom: 6px;
+    }
+
+    .timeline-item p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 0.88rem;
+    }
+
+    .timeline-item small {
+      display: block;
+      color: #7f8cb1;
+      margin-top: 8px;
+      font-size: 0.78rem;
+    }
+
+    .action-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .action-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 15px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.07);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .action-item div strong {
+      display: block;
+      font-size: 0.94rem;
+      margin-bottom: 5px;
+    }
+
+    .action-item div span {
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    .action-badge {
+      height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #e8f0ff;
+      background: rgba(255,255,255,0.06);
+    }
+
+    .monitors-card .card-body { padding-bottom: 18px; }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .chips {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      height: 36px;
+      border-radius: 999px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.03);
+      color: #dbe4ff;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .chip.active,
+    .chip:hover {
+      background: linear-gradient(135deg, rgba(110, 168, 254, 0.18), rgba(155, 140, 255, 0.12));
+      border-color: rgba(110, 168, 254, 0.24);
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.07);
+      background: rgba(255,255,255,0.02);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 980px;
+    }
+
+    thead th {
+      text-align: left;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #93a0c2;
+      padding: 16px 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      background: rgba(255,255,255,0.02);
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    tbody td {
+      padding: 16px 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-size: 0.92rem;
+      color: #e9efff;
+      vertical-align: middle;
+    }
+
+    tbody tr:hover { background: rgba(255,255,255,0.025); }
+    tbody tr:last-child td { border-bottom: none; }
+
+    .service-cell {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 260px;
+    }
+
+    .service-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, rgba(110,168,254,0.17), rgba(155,140,255,0.12));
+      border: 1px solid rgba(255,255,255,0.08);
+      color: #dce6ff;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .service-name strong {
+      display: block;
+      font-size: 0.95rem;
+      margin-bottom: 4px;
+    }
+
+    .service-name span {
+      color: var(--muted);
+      font-size: 0.84rem;
+      display: block;
+      max-width: 28ch;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .status-pill {
+      height: 30px;
+      padding: 0 12px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    .status-pill::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: currentColor;
+    }
+
+    .status-operational { background: var(--green-soft); color: #9ef0c0; }
+    .status-warning { background: var(--amber-soft); color: #ffe0a5; }
+    .status-down { background: var(--red-soft); color: #ffb8b8; }
+
+    .muted { color: var(--muted); }
+
+    .tiny-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 34px;
+      min-width: 110px;
+    }
+
+    .tiny-chart span {
+      width: 8px;
+      border-radius: 999px 999px 2px 2px;
+      background: linear-gradient(180deg, rgba(110,168,254,0.9), rgba(155,140,255,0.7));
+    }
+
+    .tiny-chart span.warn {
+      background: linear-gradient(180deg, rgba(245,181,70,0.95), rgba(245,181,70,0.6));
+    }
+
+    .tiny-chart span.down {
+      background: linear-gradient(180deg, rgba(255,107,107,0.95), rgba(255,107,107,0.6));
+    }
+
+    .footer-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .footer-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .empty-state {
+      padding: 36px 22px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 1280px) {
+      .hero,
+      .grid-2,
+      .grid-3 {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 1024px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--line);
+      }
+    }
+
+    @media (max-width: 720px) {
+      .layout { padding: 18px; }
+      .hero-main,
+      .hero-side,
+      .card-body { padding: 20px; }
+      .topbar,
+      .toolbar,
+      .chart-header,
+      .card-header,
+      .hero-main-top { align-items: stretch; }
+      .topbar-right,
+      .toolbar { flex-direction: column; align-items: stretch; }
+      .search-box { min-width: 100%; }
+      .hero-stats {
+        grid-template-columns: 1fr;
+      }
+      .health-row {
+        grid-template-columns: 68px 1fr auto;
+      }
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <h1>Monitoring Dashboard</h1>
-    </header>
-    <main>
-        <section class="dashboard-summary">
-            <div class="card">
-                <h2>Total Websites</h2>
-                <p>5</p>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"></div>
+        <div class="brand-copy">
+          <h1>PulseBoard</h1>
+          <p>Website Monitoring Suite</p>
+        </div>
+      </div>
+
+      <nav class="nav-group" aria-label="메인 내비게이션">
+        <div class="nav-label">Overview</div>
+        <a class="nav-item active" href="#">
+          <div class="nav-left">
+            <span class="nav-icon">◫</span>
+            <span>대시보드</span>
+          </div>
+          <span class="nav-badge">Live</span>
+        </a>
+        <a class="nav-item" href="#monitors">
+          <div class="nav-left">
+            <span class="nav-icon">◎</span>
+            <span>모니터</span>
+          </div>
+          <span class="nav-badge" id="sidebar-monitor-count">0</span>
+        </a>
+        <a class="nav-item" href="#alerts">
+          <div class="nav-left">
+            <span class="nav-icon">!</span>
+            <span>알림 센터</span>
+          </div>
+          <span class="nav-badge" id="sidebar-incident-count">0</span>
+        </a>
+      </nav>
+
+      <nav class="nav-group" aria-label="추가 메뉴">
+        <div class="nav-label">Manage</div>
+        <a class="nav-item" href="#">
+          <div class="nav-left">
+            <span class="nav-icon">↻</span>
+            <span>체크 설정</span>
+          </div>
+        </a>
+        <a class="nav-item" href="#">
+          <div class="nav-left">
+            <span class="nav-icon">▣</span>
+            <span>상태 페이지</span>
+          </div>
+        </a>
+        <a class="nav-item" href="#">
+          <div class="nav-left">
+            <span class="nav-icon">≋</span>
+            <span>리포트</span>
+          </div>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <strong>현재 워크스페이스</strong>
+        <p>Acme Corp · Production 환경에서 서울/도쿄/싱가포르 리전 상태를 추적 중입니다.</p>
+        <div class="mini-meta">
+          <span>플랜</span>
+          <strong style="margin:0; font-size:0.88rem;">Business</strong>
+        </div>
+      </div>
+    </aside>
+
+    <main class="layout">
+      <section class="topbar">
+        <div class="topbar-left">
+          <h2>서비스 상태 대시보드</h2>
+          <p>로그인 후 첫 화면으로 가정한 사용자용 운영 현황 페이지입니다.</p>
+        </div>
+        <div class="topbar-right">
+          <div class="pill"><span class="pill-dot" aria-hidden="true"></span> 모든 체크 엔진 정상</div>
+          <label class="search-box" aria-label="모니터 검색">
+            <span aria-hidden="true">⌕</span>
+            <input id="globalSearch" type="search" placeholder="모니터 이름 또는 URL 검색" />
+          </label>
+          <button class="btn primary" id="refreshBtn" type="button">↻ 새로고침</button>
+        </div>
+      </section>
+
+      <section class="hero">
+        <div class="card hero-main">
+          <div class="hero-main-top">
+            <div class="hero-copy">
+              <div class="eyebrow">실시간 상태 개요 · 최근 24시간</div>
+              <h3>중요 서비스는 한눈에, 이상 징후는 더 빠르게</h3>
+              <p>
+                웹사이트, API, 결제 플로우, 웹훅 엔드포인트를 하나의 화면에서 모니터링합니다.
+                평균 응답속도, 전체 가동률, 현재 장애, 최근 알림을 한 번에 확인할 수 있도록 구성했습니다.
+              </p>
             </div>
-            <div class="card">
-                <h2>Uptime</h2>
-                <p>99.9%</p>
+            <div class="pill">마지막 동기화 <strong id="lastUpdatedText" style="font-weight:700;">방금 전</strong></div>
+          </div>
+
+          <div class="hero-stats" aria-label="핵심 지표">
+            <div class="mini-card">
+              <div class="mini-head">
+                <span class="mini-label">전체 모니터</span>
+                <span class="delta up" id="deltaMonitors">+0%</span>
+              </div>
+              <div class="mini-value" id="metricTotal">0</div>
+              <div class="mini-note">현재 활성화된 체크 수</div>
             </div>
-            <div class="card">
-                <h2>Issues</h2>
-                <p>1</p>
+            <div class="mini-card">
+              <div class="mini-head">
+                <span class="mini-label">평균 가동률</span>
+                <span class="delta up" id="deltaUptime">+0.00%</span>
+              </div>
+              <div class="mini-value" id="metricUptime">0%</div>
+              <div class="mini-note">최근 30일 기준 SLA</div>
             </div>
-        </section>
-        <section class="website-list">
-            <h2>Monitored Websites</h2>
+            <div class="mini-card">
+              <div class="mini-head">
+                <span class="mini-label">평균 응답속도</span>
+                <span class="delta warn" id="deltaResponse">+0ms</span>
+              </div>
+              <div class="mini-value" id="metricResponse">0ms</div>
+              <div class="mini-note">전일 대비 평균 응답시간</div>
+            </div>
+            <div class="mini-card">
+              <div class="mini-head">
+                <span class="mini-label">현재 장애/주의</span>
+                <span class="delta down" id="deltaIncidents">0건</span>
+              </div>
+              <div class="mini-value" id="metricIncidents">0</div>
+              <div class="mini-note">즉시 조치가 필요한 항목</div>
+            </div>
+          </div>
+        </div>
+
+        <aside class="card hero-side">
+          <div class="section-title">
+            <h4>서비스 수준 목표</h4>
+            <small>월간 목표 99.95%</small>
+          </div>
+          <div class="sla-ring-wrap">
+            <div class="sla-ring" aria-hidden="true">
+              <div class="sla-center">
+                <strong id="overallSla">99.98%</strong>
+                <span>지난 30일 가동률</span>
+              </div>
+            </div>
+          </div>
+          <div class="health-bars" aria-label="서비스군 별 상태">
+            <div class="health-row">
+              <span class="muted">웹</span>
+              <div class="health-track"><div class="health-fill" id="healthWeb" style="width: 0%"></div></div>
+              <strong id="healthWebText">0%</strong>
+            </div>
+            <div class="health-row">
+              <span class="muted">API</span>
+              <div class="health-track"><div class="health-fill" id="healthApi" style="width: 0%"></div></div>
+              <strong id="healthApiText">0%</strong>
+            </div>
+            <div class="health-row">
+              <span class="muted">결제</span>
+              <div class="health-track"><div class="health-fill" id="healthPayment" style="width: 0%"></div></div>
+              <strong id="healthPaymentText">0%</strong>
+            </div>
+            <div class="health-row">
+              <span class="muted">웹훅</span>
+              <div class="health-track"><div class="health-fill" id="healthWebhook" style="width: 0%"></div></div>
+              <strong id="healthWebhookText">0%</strong>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="grid-2">
+        <article class="card">
+          <div class="card-body">
+            <div class="chart-header">
+              <div>
+                <h4>응답속도 추이</h4>
+                <p>주요 서비스의 최근 24시간 평균 응답시간</p>
+              </div>
+              <div class="legend">
+                <span class="legend-item"><span class="legend-dot primary"></span> 평균 응답시간</span>
+                <span class="legend-item"><span class="legend-dot warn"></span> 주의 구간 450ms+</span>
+                <span class="legend-item"><span class="legend-dot danger"></span> 장애 구간 900ms+</span>
+              </div>
+            </div>
+            <div class="chart-frame">
+              <div class="chart-grid">
+                <span data-label="1200ms"></span>
+                <span data-label="800ms"></span>
+                <span data-label="400ms"></span>
+                <span data-label="0ms"></span>
+              </div>
+              <svg id="response-chart" viewBox="0 0 1000 290" preserveAspectRatio="none" aria-label="응답속도 차트"></svg>
+              <div class="chart-x">
+                <span>00:00</span>
+                <span>06:00</span>
+                <span>12:00</span>
+                <span>18:00</span>
+                <span>24:00</span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <aside class="card" id="alerts">
+          <div class="card-body">
+            <div class="card-header">
+              <div>
+                <h4>최근 알림</h4>
+                <p>이상 상태, 경고, 복구 이벤트 타임라인</p>
+              </div>
+              <span class="pill"><strong id="alertCounter">0</strong>개 이벤트</span>
+            </div>
+            <div class="alert-list" id="alertList"></div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="grid-3">
+        <article class="card">
+          <div class="card-body">
+            <div class="card-header">
+              <div>
+                <h4>현재 상태 분포</h4>
+                <p>전체 모니터 중 정상/주의/장애 비율</p>
+              </div>
+              <span class="pill">실시간 집계</span>
+            </div>
+            <div class="status-breakdown">
+              <div class="stack" aria-label="상태 분포 막대">
+                <span class="ok" id="stackOk" style="width: 0%"></span>
+                <span class="warn" id="stackWarn" style="width: 0%"></span>
+                <span class="down" id="stackDown" style="width: 0%"></span>
+              </div>
+              <div class="status-legend">
+                <div class="status-row">
+                  <span class="legend-item"><span class="legend-dot" style="background: var(--green)"></span> 정상</span>
+                  <strong id="statusOperationalCount">0개</strong>
+                  <span id="statusOperationalPercent">0%</span>
+                </div>
+                <div class="status-row">
+                  <span class="legend-item"><span class="legend-dot warn"></span> 주의</span>
+                  <strong id="statusWarningCount">0개</strong>
+                  <span id="statusWarningPercent">0%</span>
+                </div>
+                <div class="status-row">
+                  <span class="legend-item"><span class="legend-dot danger"></span> 장애</span>
+                  <strong id="statusDownCount">0개</strong>
+                  <span id="statusDownPercent">0%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-body">
+            <div class="card-header">
+              <div>
+                <h4>최근 변경 이력</h4>
+                <p>복구와 성능 저하 이벤트를 시간순으로 표시</p>
+              </div>
+            </div>
+            <div class="timeline" id="timelineList"></div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-body">
+            <div class="card-header">
+              <div>
+                <h4>권장 액션</h4>
+                <p>현재 상태를 기준으로 한 운영 우선순위</p>
+              </div>
+            </div>
+            <div class="action-list" id="actionList"></div>
+          </div>
+        </article>
+      </section>
+
+      <section class="card monitors-card" id="monitors">
+        <div class="card-body">
+          <div class="card-header">
+            <div>
+              <h4>모니터 목록</h4>
+              <p>서비스별 상태, 응답속도, 체크 주기, SSL 만료, 최근 추세를 제공합니다.</p>
+            </div>
+            <div class="toolbar" style="margin:0;">
+              <div class="chips" role="tablist" aria-label="상태 필터">
+                <button class="chip active" type="button" data-filter="all">전체</button>
+                <button class="chip" type="button" data-filter="operational">정상</button>
+                <button class="chip" type="button" data-filter="warning">주의</button>
+                <button class="chip" type="button" data-filter="down">장애</button>
+              </div>
+              <span class="pill" id="monitorSummaryPill">0개 모니터 표시 중</span>
+            </div>
+          </div>
+
+          <div class="table-wrap">
             <table>
-                <thead>
-                    <tr>
-                        <th>Website</th>
-                        <th>Status</th>
-                        <th>Response Time</th>
-                        <th>Last Checked</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>example.com</td>
-                        <td>Up</td>
-                        <td>120ms</td>
-                        <td>2 minutes ago</td>
-                    </tr>
-                    <tr>
-                        <td>google.com</td>
-                        <td>Up</td>
-                        <td>50ms</td>
-                        <td>1 minute ago</td>
-                    </tr>
-                    <tr>
-                        <td>github.com</td>
-                        <td>Down</td>
-                        <td>N/A</td>
-                        <td>5 minutes ago</td>
-                    </tr>
-                </tbody>
+              <thead>
+                <tr>
+                  <th>서비스</th>
+                  <th>상태</th>
+                  <th>가동률</th>
+                  <th>응답속도</th>
+                  <th>체크 주기</th>
+                  <th>리전</th>
+                  <th>SSL</th>
+                  <th>최근 추세</th>
+                </tr>
+              </thead>
+              <tbody id="monitorTableBody"></tbody>
             </table>
-        </section>
+          </div>
+
+          <div id="emptyState" class="empty-state" hidden>
+            검색 또는 필터 조건에 맞는 모니터가 없습니다.
+          </div>
+
+          <div class="footer-bar" style="margin-top: 18px;">
+            <span>데이터는 데모용 샘플이며, 실제 서비스에서는 API 응답으로 대체하면 됩니다.</span>
+            <div class="footer-actions">
+              <button class="btn" type="button">CSV 내보내기</button>
+              <button class="btn" type="button">상태 페이지 보기</button>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
-    <script src="main.js"></script>
+  </div>
+
+  <script>
+    const monitors = [
+      {
+        id: 1,
+        name: "메인 웹사이트",
+        url: "https://www.acme.com",
+        type: "웹",
+        region: "서울 · 도쿄",
+        status: "operational",
+        uptime: 99.99,
+        response: 182,
+        interval: "1분",
+        sslDays: 42,
+        trend: [56, 62, 58, 60, 64, 68, 65, 70, 67, 66, 63, 58],
+      },
+      {
+        id: 2,
+        name: "결제 체크아웃",
+        url: "https://checkout.acme.com",
+        type: "결제",
+        region: "서울 · 싱가포르",
+        status: "warning",
+        uptime: 99.72,
+        response: 468,
+        interval: "30초",
+        sslDays: 18,
+        trend: [40, 45, 44, 47, 52, 59, 61, 68, 72, 70, 74, 80],
+      },
+      {
+        id: 3,
+        name: "공개 API",
+        url: "https://api.acme.com/v1/health",
+        type: "API",
+        region: "도쿄 · 싱가포르",
+        status: "operational",
+        uptime: 99.96,
+        response: 134,
+        interval: "30초",
+        sslDays: 67,
+        trend: [38, 41, 43, 42, 40, 39, 38, 37, 36, 38, 39, 42],
+      },
+      {
+        id: 4,
+        name: "관리자 콘솔",
+        url: "https://admin.acme.com",
+        type: "웹",
+        region: "서울",
+        status: "operational",
+        uptime: 99.91,
+        response: 226,
+        interval: "1분",
+        sslDays: 91,
+        trend: [52, 50, 48, 49, 53, 56, 57, 55, 54, 52, 50, 49],
+      },
+      {
+        id: 5,
+        name: "상태 페이지 API",
+        url: "https://status.acme.com/api",
+        type: "API",
+        region: "서울 · 도쿄 · 싱가포르",
+        status: "operational",
+        uptime: 100.0,
+        response: 88,
+        interval: "1분",
+        sslDays: 120,
+        trend: [28, 27, 29, 31, 30, 28, 27, 29, 30, 31, 30, 28],
+      },
+      {
+        id: 6,
+        name: "웹훅 수신 엔드포인트",
+        url: "https://hooks.acme.com/inbound",
+        type: "웹훅",
+        region: "싱가포르",
+        status: "down",
+        uptime: 98.42,
+        response: 1240,
+        interval: "15초",
+        sslDays: 9,
+        trend: [34, 36, 38, 42, 50, 64, 78, 86, 94, 98, 100, 100],
+      },
+      {
+        id: 7,
+        name: "문서 사이트",
+        url: "https://docs.acme.com",
+        type: "웹",
+        region: "도쿄",
+        status: "operational",
+        uptime: 99.88,
+        response: 205,
+        interval: "2분",
+        sslDays: 51,
+        trend: [47, 46, 45, 44, 44, 45, 46, 45, 44, 43, 44, 45],
+      },
+      {
+        id: 8,
+        name: "인증 토큰 발급",
+        url: "https://auth.acme.com/oauth/token",
+        type: "API",
+        region: "서울 · 도쿄",
+        status: "warning",
+        uptime: 99.63,
+        response: 512,
+        interval: "30초",
+        sslDays: 25,
+        trend: [39, 40, 42, 41, 45, 48, 50, 58, 62, 65, 67, 69],
+      },
+    ];
+
+    const alerts = [
+      {
+        level: "high",
+        severityText: "긴급",
+        title: "웹훅 수신 엔드포인트 장애",
+        message: "HTTP 502 오류가 연속 8회 감지되었습니다. 재시도 큐가 누적되고 있어 즉시 확인이 필요합니다.",
+        time: "2분 전",
+      },
+      {
+        level: "medium",
+        severityText: "주의",
+        title: "결제 체크아웃 응답 지연",
+        message: "평균 응답시간이 450ms를 넘어 임계값에 근접했습니다. 외부 PG 연동 구간 점검을 권장합니다.",
+        time: "11분 전",
+      },
+      {
+        level: "medium",
+        severityText: "주의",
+        title: "인증 토큰 발급 API 지연",
+        message: "토큰 발급 요청의 p95 응답시간이 600ms 수준까지 증가했습니다. 캐시 미스율과 DB 커넥션을 확인하세요.",
+        time: "27분 전",
+      },
+      {
+        level: "low",
+        severityText: "정보",
+        title: "관리자 콘솔 배포 완료",
+        message: "v2.13.0 릴리스가 정상 배포되었으며 헬스체크는 모두 통과했습니다.",
+        time: "1시간 전",
+      },
+    ];
+
+    const timeline = [
+      {
+        type: "down",
+        title: "웹훅 엔드포인트 장애 시작",
+        description: "싱가포르 리전 인바운드 라우트에서 5xx 비율 급증. 현재 조사 중입니다.",
+        time: "오늘 09:14",
+      },
+      {
+        type: "warn",
+        title: "결제 체크아웃 성능 저하",
+        description: "외부 결제 승인 요청의 평균 지연이 증가했습니다. 다운은 아니지만 SLA에 영향 가능성이 있습니다.",
+        time: "오늘 09:05",
+      },
+      {
+        type: "ok",
+        title: "관리자 콘솔 배포 후 안정화",
+        description: "배포 완료 후 20분간 오류율 0%, 평균 응답시간 226ms로 정상 범위를 유지했습니다.",
+        time: "오늘 08:30",
+      },
+    ];
+
+    const actions = [
+      { title: "웹훅 재시도 큐 모니터링 강화", note: "실패 재시도 증가에 따라 알림 임계값을 5분 단위로 세분화", badge: "긴급" },
+      { title: "결제 구간 외부 의존성 점검", note: "PG 응답시간, DNS, TLS 핸드셰이크 구간 확인", badge: "권장" },
+      { title: "만료 임박 SSL 인증서 확인", note: "웹훅 엔드포인트 인증서는 9일 후 만료 예정", badge: "주의" },
+      { title: "상태 페이지 공지 준비", note: "장애 지속 시 사용자 공지 템플릿을 즉시 배포 가능 상태로 유지", badge: "옵션" },
+    ];
+
+    let responseSeries = [220, 208, 194, 186, 174, 168, 176, 204, 248, 292, 338, 356, 372, 408, 452, 518, 612, 574, 488, 426, 352, 286, 244, 228];
+    let activeFilter = "all";
+
+    const el = {
+      globalSearch: document.getElementById("globalSearch"),
+      refreshBtn: document.getElementById("refreshBtn"),
+      lastUpdatedText: document.getElementById("lastUpdatedText"),
+      metricTotal: document.getElementById("metricTotal"),
+      metricUptime: document.getElementById("metricUptime"),
+      metricResponse: document.getElementById("metricResponse"),
+      metricIncidents: document.getElementById("metricIncidents"),
+      deltaMonitors: document.getElementById("deltaMonitors"),
+      deltaUptime: document.getElementById("deltaUptime"),
+      deltaResponse: document.getElementById("deltaResponse"),
+      deltaIncidents: document.getElementById("deltaIncidents"),
+      overallSla: document.getElementById("overallSla"),
+      healthWeb: document.getElementById("healthWeb"),
+      healthApi: document.getElementById("healthApi"),
+      healthPayment: document.getElementById("healthPayment"),
+      healthWebhook: document.getElementById("healthWebhook"),
+      healthWebText: document.getElementById("healthWebText"),
+      healthApiText: document.getElementById("healthApiText"),
+      healthPaymentText: document.getElementById("healthPaymentText"),
+      healthWebhookText: document.getElementById("healthWebhookText"),
+      responseChart: document.getElementById("response-chart"),
+      alertList: document.getElementById("alertList"),
+      alertCounter: document.getElementById("alertCounter"),
+      timelineList: document.getElementById("timelineList"),
+      actionList: document.getElementById("actionList"),
+      stackOk: document.getElementById("stackOk"),
+      stackWarn: document.getElementById("stackWarn"),
+      stackDown: document.getElementById("stackDown"),
+      statusOperationalCount: document.getElementById("statusOperationalCount"),
+      statusWarningCount: document.getElementById("statusWarningCount"),
+      statusDownCount: document.getElementById("statusDownCount"),
+      statusOperationalPercent: document.getElementById("statusOperationalPercent"),
+      statusWarningPercent: document.getElementById("statusWarningPercent"),
+      statusDownPercent: document.getElementById("statusDownPercent"),
+      monitorTableBody: document.getElementById("monitorTableBody"),
+      emptyState: document.getElementById("emptyState"),
+      monitorSummaryPill: document.getElementById("monitorSummaryPill"),
+      sidebarMonitorCount: document.getElementById("sidebar-monitor-count"),
+      sidebarIncidentCount: document.getElementById("sidebar-incident-count"),
+      chips: Array.from(document.querySelectorAll(".chip")),
+    };
+
+    const statusMap = {
+      operational: { label: "정상", className: "status-operational" },
+      warning: { label: "주의", className: "status-warning" },
+      down: { label: "장애", className: "status-down" },
+    };
+
+    function formatNumber(value, fractionDigits = 0) {
+      return new Intl.NumberFormat("ko-KR", {
+        minimumFractionDigits: fractionDigits,
+        maximumFractionDigits: fractionDigits,
+      }).format(value);
+    }
+
+    function initialsFor(name) {
+      return name
+        .split(" ")
+        .map((part) => part[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase();
+    }
+
+    function average(items, key) {
+      if (!items.length) return 0;
+      return items.reduce((sum, item) => sum + item[key], 0) / items.length;
+    }
+
+    function countByStatus(status) {
+      return monitors.filter((monitor) => monitor.status === status).length;
+    }
+
+    function typeAverage(type) {
+      const subset = monitors.filter((monitor) => monitor.type === type);
+      return subset.length ? average(subset, "uptime") : 0;
+    }
+
+    function renderSummary() {
+      const total = monitors.length;
+      const uptimeAvg = average(monitors, "uptime");
+      const responseAvg = average(monitors, "response");
+      const incidentCount = monitors.filter((item) => item.status !== "operational").length;
+
+      el.metricTotal.textContent = formatNumber(total);
+      el.metricUptime.textContent = `${uptimeAvg.toFixed(2)}%`;
+      el.metricResponse.textContent = `${Math.round(responseAvg)}ms`;
+      el.metricIncidents.textContent = formatNumber(incidentCount);
+
+      el.deltaMonitors.textContent = "+6.3%";
+      el.deltaUptime.textContent = "+0.04%";
+      el.deltaResponse.textContent = "+38ms";
+      el.deltaIncidents.textContent = `${incidentCount}건 활성`;
+      el.overallSla.textContent = `${uptimeAvg.toFixed(2)}%`;
+      el.sidebarMonitorCount.textContent = formatNumber(total);
+      el.sidebarIncidentCount.textContent = formatNumber(alerts.length);
+
+      const healthValues = {
+        web: typeAverage("웹"),
+        api: typeAverage("API"),
+        payment: typeAverage("결제"),
+        webhook: typeAverage("웹훅"),
+      };
+
+      el.healthWeb.style.width = `${healthValues.web}%`;
+      el.healthApi.style.width = `${healthValues.api}%`;
+      el.healthPayment.style.width = `${healthValues.payment}%`;
+      el.healthWebhook.style.width = `${healthValues.webhook}%`;
+
+      el.healthWebText.textContent = `${healthValues.web.toFixed(2)}%`;
+      el.healthApiText.textContent = `${healthValues.api.toFixed(2)}%`;
+      el.healthPaymentText.textContent = `${healthValues.payment.toFixed(2)}%`;
+      el.healthWebhookText.textContent = `${healthValues.webhook.toFixed(2)}%`;
+
+      const operational = countByStatus("operational");
+      const warning = countByStatus("warning");
+      const down = countByStatus("down");
+      const opPct = total ? (operational / total) * 100 : 0;
+      const warnPct = total ? (warning / total) * 100 : 0;
+      const downPct = total ? (down / total) * 100 : 0;
+
+      el.stackOk.style.width = `${opPct}%`;
+      el.stackWarn.style.width = `${warnPct}%`;
+      el.stackDown.style.width = `${downPct}%`;
+      el.statusOperationalCount.textContent = `${formatNumber(operational)}개`;
+      el.statusWarningCount.textContent = `${formatNumber(warning)}개`;
+      el.statusDownCount.textContent = `${formatNumber(down)}개`;
+      el.statusOperationalPercent.textContent = `${Math.round(opPct)}%`;
+      el.statusWarningPercent.textContent = `${Math.round(warnPct)}%`;
+      el.statusDownPercent.textContent = `${Math.round(downPct)}%`;
+    }
+
+    function renderAlerts() {
+      el.alertCounter.textContent = formatNumber(alerts.length);
+      el.alertList.innerHTML = alerts.map((alert) => `
+        <article class="alert-item">
+          <div class="alert-icon ${alert.level}" aria-hidden="true">${alert.level === "high" ? "!" : alert.level === "medium" ? "~" : "i"}</div>
+          <div class="alert-content">
+            <strong>${alert.title}</strong>
+            <p>${alert.message}</p>
+          </div>
+          <div class="alert-meta">
+            <span class="severity ${alert.level}">${alert.severityText}</span>
+            <span>${alert.time}</span>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function renderTimeline() {
+      el.timelineList.innerHTML = timeline.map((entry) => `
+        <div class="timeline-item">
+          <span class="timeline-dot ${entry.type}" aria-hidden="true"></span>
+          <div>
+            <strong>${entry.title}</strong>
+            <p>${entry.description}</p>
+            <small>${entry.time}</small>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function renderActions() {
+      el.actionList.innerHTML = actions.map((item) => `
+        <div class="action-item">
+          <div>
+            <strong>${item.title}</strong>
+            <span>${item.note}</span>
+          </div>
+          <span class="action-badge">${item.badge}</span>
+        </div>
+      `).join("");
+    }
+
+    function createTinyChart(trend, status) {
+      const max = Math.max(...trend, 1);
+      return `<div class="tiny-chart" aria-label="최근 추세">${trend
+        .map((value) => {
+          const height = Math.max(10, Math.round((value / max) * 34));
+          const barClass = status === "down" ? "down" : status === "warning" && value > max * 0.7 ? "warn" : "";
+          return `<span class="${barClass}" style="height:${height}px"></span>`;
+        })
+        .join("")}</div>`;
+    }
+
+    function filterMonitors() {
+      const query = el.globalSearch.value.trim().toLowerCase();
+      return monitors.filter((monitor) => {
+        const filterMatch = activeFilter === "all" ? true : monitor.status === activeFilter;
+        const searchMatch = !query || monitor.name.toLowerCase().includes(query) || monitor.url.toLowerCase().includes(query) || monitor.region.toLowerCase().includes(query);
+        return filterMatch && searchMatch;
+      });
+    }
+
+    function renderMonitorTable() {
+      const filtered = filterMonitors();
+
+      el.monitorSummaryPill.textContent = `${formatNumber(filtered.length)}개 모니터 표시 중`;
+      el.emptyState.hidden = filtered.length !== 0;
+      el.monitorTableBody.innerHTML = filtered.map((monitor) => {
+        const status = statusMap[monitor.status];
+        const sslText = monitor.sslDays <= 14 ? `${monitor.sslDays}일 남음` : `${monitor.sslDays}일`;
+        const sslClass = monitor.sslDays <= 14 ? "severity high" : monitor.sslDays <= 30 ? "severity medium" : "severity low";
+
+        return `
+          <tr>
+            <td>
+              <div class="service-cell">
+                <span class="service-icon" aria-hidden="true">${initialsFor(monitor.name)}</span>
+                <div class="service-name">
+                  <strong>${monitor.name}</strong>
+                  <span>${monitor.url}</span>
+                </div>
+              </div>
+            </td>
+            <td><span class="status-pill ${status.className}">${status.label}</span></td>
+            <td>${monitor.uptime.toFixed(2)}%</td>
+            <td>${formatNumber(monitor.response)}ms</td>
+            <td>${monitor.interval}</td>
+            <td class="muted">${monitor.region}</td>
+            <td><span class="${sslClass}">${sslText}</span></td>
+            <td>${createTinyChart(monitor.trend, monitor.status)}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function renderResponseChart() {
+      const maxValue = 1200;
+      const width = 1000;
+      const height = 290;
+      const padX = 16;
+      const padY = 20;
+      const innerHeight = height - padY * 2;
+      const innerWidth = width - padX * 2;
+
+      const points = responseSeries.map((value, index) => {
+        const x = padX + (innerWidth / (responseSeries.length - 1)) * index;
+        const clamped = Math.min(maxValue, value);
+        const y = height - padY - (clamped / maxValue) * innerHeight;
+        return { x, y, value: clamped };
+      });
+
+      const pointString = points.map((p) => `${p.x},${p.y}`).join(" ");
+      const areaString = `0,${height} ${points.map((p) => `${p.x},${p.y}`).join(" ")} ${width},${height}`;
+
+      const thresholdY450 = height - padY - (450 / maxValue) * innerHeight;
+      const thresholdY900 = height - padY - (900 / maxValue) * innerHeight;
+
+      el.responseChart.innerHTML = `
+        <defs>
+          <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="rgba(110,168,254,0.45)" />
+            <stop offset="100%" stop-color="rgba(110,168,254,0.02)" />
+          </linearGradient>
+          <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#6ea8fe" />
+            <stop offset="100%" stop-color="#9b8cff" />
+          </linearGradient>
+        </defs>
+
+        <rect x="0" y="${thresholdY900}" width="${width}" height="${thresholdY450 - thresholdY900}" fill="rgba(245, 181, 70, 0.08)"></rect>
+        <rect x="0" y="0" width="${width}" height="${thresholdY900}" fill="rgba(255, 107, 107, 0.06)"></rect>
+        <polygon points="${areaString}" fill="url(#areaGradient)"></polygon>
+        <polyline points="${pointString}" fill="none" stroke="url(#lineGradient)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></polyline>
+        ${points.map((p) => `<circle cx="${p.x}" cy="${p.y}" r="4.5" fill="#0f1628" stroke="#d9e6ff" stroke-width="2"></circle>`).join("")}
+      `;
+    }
+
+    function refreshData() {
+      responseSeries = responseSeries.map((value, index) => {
+        const delta = Math.round((Math.random() - 0.45) * 90);
+        const bias = index > 14 && index < 18 ? 40 : 0;
+        return Math.max(90, Math.min(1180, value + delta + bias));
+      });
+
+      monitors.forEach((monitor) => {
+        const responseDelta = Math.round((Math.random() - 0.5) * (monitor.status === "down" ? 120 : 40));
+        monitor.response = Math.max(70, monitor.response + responseDelta);
+        const uptimeDelta = (Math.random() - 0.5) * 0.06;
+        monitor.uptime = Math.max(97.0, Math.min(100.0, +(monitor.uptime + uptimeDelta).toFixed(2)));
+
+        monitor.trend = monitor.trend.map((point, idx) => {
+          const pointDelta = (Math.random() - 0.5) * 8 + (idx > 8 ? 1.2 : 0);
+          return Math.max(20, Math.min(100, Math.round(point + pointDelta)));
+        });
+      });
+
+      const now = new Date();
+      el.lastUpdatedText.textContent = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
+      renderAll();
+    }
+
+    function renderAll() {
+      renderSummary();
+      renderAlerts();
+      renderTimeline();
+      renderActions();
+      renderResponseChart();
+      renderMonitorTable();
+    }
+
+    el.globalSearch.addEventListener("input", renderMonitorTable);
+    el.refreshBtn.addEventListener("click", refreshData);
+    el.chips.forEach((chip) => {
+      chip.addEventListener("click", () => {
+        activeFilter = chip.dataset.filter;
+        el.chips.forEach((item) => item.classList.toggle("active", item === chip));
+        renderMonitorTable();
+      });
+    });
+
+    renderAll();
+  </script>
 </body>
 </html>
